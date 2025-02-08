@@ -11,8 +11,7 @@
 # - Figure out how to manage images that need secrets
 # - Push to openregistry.dev
 # - Test before push seems like a nice thing to have
-
-# name: ci
+# - are attestations and sbom working?
 
 on:
   push:
@@ -80,9 +79,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           sbom: true
           tags: ${{ steps.meta.outputs.tags }}
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # pin@v2.2.0
-        with:
-          push-to-registry: true
-          subject-digest: ${{ steps.push.outputs.digest }}
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+      # - name: Generate artifact attestation
+      #   uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # pin@v2.2.0
+      #   with:
+      #     push-to-registry: true
+      #     subject-digest: ${{ steps.push.outputs.digest }}
+      #     subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
