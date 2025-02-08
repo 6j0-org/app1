@@ -1,11 +1,18 @@
+# Based on:
+# https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#publishing-a-package-using-an-action
 # https://github.com/marketplace/actions/build-and-push-docker-images
+# https://docs.docker.com/build/ci/github-actions/multi-platform/
+# https://docs.docker.com/build/ci/github-actions/manage-tags-labels/
+# https://docs.docker.com/build/ci/github-actions/cache/
+# https://docs.docker.com/build/ci/github-actions/attestations/
+# https://docs.docker.com/build/ci/github-actions/reproducible-builds/
 
 # TODO:
 # - Figure out how to manage images that need secrets
 # - Push to openregistry.dev
 # - Test before push seems like a nice thing to have
 
-name: ci
+# name: ci
 
 on:
   push:
@@ -14,22 +21,25 @@ on:
     branches: [ "main" ]
 
 env:
-  IMAGE_NAME: ghcr.io/6j0-org/app1
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   docker:
     runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#      packages: write
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
     steps:
-      - name: Docker meta
+      - uses: actions/checkout@v4
+      - uses: docker/metadata-action@v5
         id: meta
-        uses: docker/metadata-action@v5
         with:
-          # list of Docker images to use as base name for tags
-          images: ${{ env.IMAGE_NAME }}
-          # generate Docker tags based on the following events/attributes
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=schedule
             type=ref,event=branch
@@ -38,9 +48,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
-
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v4
+      - uses: docker/setup-docker-action@v4
         with:
           daemon-config: |
             {
@@ -49,39 +57,32 @@ jobs:
                 "containerd-snapshotter": true
               }
             }
-
-#      -
-#        name: Login to Docker Hub
-#        if: github.event_name != 'pull_request'
-#        uses: docker/login-action@v3
-#        with:
-#          username: ${{ vars.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-
-      - name: Login to GitHub Container Registry
+      - uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Build and push
-        uses: docker/build-push-action@v6
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Get Git commit timestamps for reproducible builds
+        run: echo "TIMESTAMP=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
+      - uses: docker/build-push-action@v6
+        env:
+          SOURCE_DATE_EPOCH: ${{ env.TIMESTAMP }}
         with:
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          context: .
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
           provenance: mode=max
+          push: ${{ github.event_name != 'pull_request' }}
           sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          push-to-registry: true
+          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
