@@ -29,10 +29,10 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
-      packages: write
       attestations: write
+      contents: read
       id-token: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -80,9 +80,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           sbom: true
           tags: ${{ steps.meta.outputs.tags }}
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
-        with:
-          push-to-registry: true
-          subject-digest: ${{ steps.push.outputs.digest }}
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@v2
+#        with:
+#          push-to-registry: true
+#          subject-digest: ${{ steps.push.outputs.digest }}
+#          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
