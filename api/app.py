@@ -2,6 +2,10 @@ from flask import Flask
 
 app = Flask(__name__)
 
+@app.route('/')
+def hey_there():
+    return "Try /heytherefella"
+
 @app.route('/heytherefella')
 def hey_there():
     return "Whose soul are you tormenting now?"
