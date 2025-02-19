@@ -46,7 +46,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha
+            type=sha,format=long
             type=raw,value=dev-{{sha}}-{{commit_date 'X'}}
       - uses: docker/setup-docker-action@370a7dad4b8ce8dbf00f9363e1652e5074dd6abe # pin@v4.1.0
         with:
