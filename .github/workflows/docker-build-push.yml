@@ -39,6 +39,8 @@ jobs:
         id: meta
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+          # dev-{{sha}}-{{commit_date 'X'}} was added for Flux. See https://fluxcd.io/flux/guides/image-update/#imagepolicy-examples
           tags: |
             type=schedule
             type=ref,event=branch
@@ -48,6 +50,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,format=long
             type=raw,value=dev-{{sha}}-{{commit_date 'X'}}
+
       - uses: docker/setup-docker-action@370a7dad4b8ce8dbf00f9363e1652e5074dd6abe # pin@v4.1.0
         with:
           daemon-config: |
@@ -88,7 +91,7 @@ jobs:
       #     subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
       - uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # pin@0.29.0
         with:
-          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}'
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
