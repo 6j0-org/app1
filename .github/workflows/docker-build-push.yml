@@ -37,13 +37,13 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-
+    outputs:
+      image_tag: ${{ steps.output.outputs.image_tag }}
     permissions:
       attestations: write
       contents: read
       id-token: write
       packages: write
-
     steps:
       # Log into hub.docker.com to avoid unauthenticated rate limting
       # https://docs.docker.com/docker-hub/usage/
@@ -52,6 +52,8 @@ jobs:
       #     username: ${{ secrets.DOCKER_USERNAME }}
       #     password: ${{ secrets.DOCKER_TOKEN }}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4.2.2
+      - id: output
+        run: echo "image_tag=$(git branch --show-current)-$(git rev-parse --short=7 HEAD)-$(git log -1 --pretty=%ct)" >> $GITHUB_OUTPUT
       - uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # pin@v5.6.1
         id: meta
         with:
@@ -66,7 +68,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha,format=long
-            type=raw,value=dev-{{sha}}-{{commit_date 'X'}}
+            type=raw,value=${{ steps.output.outputs.image_tag }}
 
       - uses: docker/setup-docker-action@370a7dad4b8ce8dbf00f9363e1652e5074dd6abe # pin@v4.1.0
         with:
