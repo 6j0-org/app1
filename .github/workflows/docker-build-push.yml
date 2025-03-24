@@ -16,7 +16,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - api
+      - api/**
       - Dockerfile
       - .github/workflows/docker-build-push.yml
       - .gitignore
@@ -24,7 +24,7 @@ on:
   pull_request:
     branches: [ "main" ]
     paths:
-      - api
+      - api/**
       - Dockerfile
       - .github/workflows/docker-build-push.yml
       - .gitignore
