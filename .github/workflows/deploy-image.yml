@@ -35,4 +35,5 @@ jobs:
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.current_tag }}" \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${new_tag}"
           docker push \
+            -a \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${new_tag}"
