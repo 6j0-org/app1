@@ -23,11 +23,4 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          # Using docker pull/push -a because it keeps all the tags together, which looks nicer on ghcr.io.
-          docker pull -a \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.current_tag }}"
-          docker tag \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.current_tag }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.new_tag }}"
-          docker push -a \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          docker buildx imagetools create "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.current_tag }}" --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.new_tag }}"
