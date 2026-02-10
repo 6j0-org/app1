@@ -9,7 +9,7 @@ on:
       deploy_env:
         type: choice
         options:
-          - test 
+          - test
           - prod
 env:
   REGISTRY: ghcr.io
@@ -22,7 +22,7 @@ jobs:
       #id-token: write
       packages: write
     steps:
-      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # pin@v3.3.0
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
