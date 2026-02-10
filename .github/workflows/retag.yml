@@ -1,0 +1,32 @@
+name: Retag Image
+on:
+  workflow_dispatch:
+    inputs:
+      current_tag:
+        description: "The existing tag on the image to retag"
+        required: true
+      new_tag:
+        description: "The new tag to apply to the image"
+        required: true
+jobs:
+  retag-image:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+    steps:
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker pull \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.current_tag }}"
+          docker tag \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.current_tag }}" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.new_tag }}"
+          docker push \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.new_tag }}"
