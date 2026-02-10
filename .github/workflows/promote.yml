@@ -28,5 +28,6 @@ jobs:
           docker tag \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${current_tag}" \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${new_tag}"
-          docker push \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${new_tag}"
+          # Using -a because it adds the tag to the existing image instead of deploying what looks like a new image.
+          docker push -a \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
