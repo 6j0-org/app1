@@ -1,4 +1,5 @@
 # docker manifest inspect python:3.14.3 | grep -A 10 '"digest"'
+#
 FROM python@sha256:df664da180aa3d1814f6d05975b30883d87aafaa99b1b353526a8a094db78578
 
 # ARG POETRY_HTTP_BASIC_GITLAB_USERNAME
