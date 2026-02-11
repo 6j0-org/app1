@@ -1,8 +1,10 @@
-name: Promote Image
+# This workflow finds the latest image with a "dev-" prefix, and adds a "prod-" prefix to it. When FluxCD sees the new "prod-" tag, it will automatically deploy it to the production environment.
+
+name: Promote to Prod
 on:
   workflow_dispatch: {}
 jobs:
-  promote-image:
+  promote-to-prod:
     runs-on: ubuntu-latest
     permissions:
       packages: write

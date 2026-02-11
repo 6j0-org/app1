@@ -1,0 +1,32 @@
+# This adds a tag to an existing image.
+#
+# This is useful if we need to do a FluxCD rollback.
+#
+# FluxCD uses image tags to deploy images. The tag format is "${env}-${git_sha}-${unix_epoch_timestamp}". The dev environment looks for images with the prefix "dev-", and the prod environment looks for the prefix "prod-". The image with the latest unix epoch timestamp is deployed to the environment. The fastest way to roll an image back in FluxCD is to add a newer timestamp to the image that you want to rollback to. For example, if you just deployed "prod-8867672-1770761352" and discovered a bug, you can use this workflow to rollback to git SHA 7f21c09 by adding a tag with an incremented timestamp, ie. "prod-7f21c09-1770761353" (note that the timestamp 1770761353 is greater than the buggy release's timestamp of 1770761352.)
+
+name: Add Tag
+on:
+  workflow_dispatch:
+    inputs:
+      existing_tag:
+        description: "Enter the tag of an existing image, e.g. prod-7f21c09-1770759545"
+        required: true
+      new_tag:
+        description: "Enter a new tag to add to the image."
+        required: true
+jobs:
+  add-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+    steps:
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker buildx imagetools create "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.existing_tag }}" --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.new_tag }}"
